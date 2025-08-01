@@ -7,6 +7,7 @@ import unicodedata
 import concurrent.futures
 import numpy as np
 import time
+import yaml
 
 GPT2_SPLIT_PATTERN = r"""'(?:[sdmt]|ll|ve|re)| ?\p{L}+| ?\p{N}+| ?[^\s\p{L}\p{N}]+|\s+(?!\S)|\s+"""
 GPT4_SPLIT_PATTERN = r"""'(?i:[sdmt]|ll|ve|re)|[^\r\n\p{L}\p{N}]?+\p{L}+|\p{N}{1,3}| ?[^\s\p{L}\p{N}]++[\r\n]*|\s*[\r\n]|\s+(?!\S)|\s+"""
@@ -18,7 +19,20 @@ MERGE_BATCHING_MAX_WORKER = 50
 MAX_WORKER = 10
 
 class MATokenizer:
-   
+    
+    def load_config(self):
+        with open("config.yaml", "r") as f:
+            config = yaml.safe_load(f)
+            GPT2_SPLIT_PATTERN = config.get("gpt2_split_pattern", GPT2_SPLIT_PATTERN)
+            GPT4_SPLIT_PATTERN = config.get("gpt4_split_pattern", GPT4_SPLIT_PATTERN)
+            BATCHSIZE = config.get("batch_size", BATCHSIZE)
+            CHUNKING_BATCHSIZE = config.get("chunking_batch_size", CHUNKING_BATCHSIZE)
+            CHUNKING_MAX_WORKER = config.get("chunking_max_worker", CHUNKING_MAX_WORKER)
+            MERGE_BATCHING_SIZE = config.get("merge_batching_size", MERGE_BATCHING_SIZE)
+            MERGE_BATCHING_MAX_WORKER = config.get("merge_batching_max_worker", MERGE_BATCHING_MAX_WORKER)
+            MAX_WORKER = config.get("max_worker", MAX_WORKER)
+            return config
+
     def __init__(self, vocab_size=1000):
         self.vocab_size = vocab_size
         self.merges = {}
@@ -27,6 +41,7 @@ class MATokenizer:
         self.id_to_token = {}
         self.vocab = self._build_vocab()
         self.pattern = ""
+        config = self.load_config()
 
     def batching_files(self,folder_path,batchsize):
         all_files = os.listdir(folder_path)

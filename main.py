@@ -42,9 +42,9 @@ def main():
     elif args.process.lower() == 'collect':
         collect()
     elif args.process.lower() == 'buildbpe':
-        builder = MABPECorpusBuilder(clean_text_dir='data/clean/wiki_crawl',
-                                     tokenizer_path='data/tokenizer/ma25725.json',
-                                     vocab_size=16000)
+        builder = MABPECorpusBuilder(clean_text_dir=config["train_tokenizer"]["data_path"],
+                                     tokenizer_path=config["train_tokenizer"]["tokenizer_path"],
+                                     vocab_size=config["train_tokenizer"]["vocab_size"])
         builder.train_or_load_tokenizer(force_retrain=False)
     else:
         print("Paramter not supported use wither of these processes: [claen, collect]")

@@ -31,6 +31,6 @@ class MABPECorpusBuilder:
             self.tokenizer.load(self.tokenizer_path)
         else:
             print("[+] Training BPE tokenizer from scratch...")
-            self.tokenizer.build_bpe(self.clean_text_dir)
+            self.tokenizer.build_bpe_p(self.clean_text_dir)
             self.tokenizer.save(self.tokenizer_path)
             print(f"[✓] Tokenizer saved to {self.tokenizer_path}")
