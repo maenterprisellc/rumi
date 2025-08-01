@@ -9,28 +9,29 @@ import numpy as np
 import time
 import yaml
 
-GPT2_SPLIT_PATTERN = r"""'(?:[sdmt]|ll|ve|re)| ?\p{L}+| ?\p{N}+| ?[^\s\p{L}\p{N}]+|\s+(?!\S)|\s+"""
-GPT4_SPLIT_PATTERN = r"""'(?i:[sdmt]|ll|ve|re)|[^\r\n\p{L}\p{N}]?+\p{L}+|\p{N}{1,3}| ?[^\s\p{L}\p{N}]++[\r\n]*|\s*[\r\n]|\s+(?!\S)|\s+"""
-BATCHSIZE = 100
-CHUNKING_BATCHSIZE = 10000
-CHUNKING_MAX_WORKER = 50
-MERGE_BATCHING_SIZE = 10000
-MERGE_BATCHING_MAX_WORKER = 50
-MAX_WORKER = 10
+
 
 class MATokenizer:
     
     def load_config(self):
         with open("config.yaml", "r") as f:
+            GPT2_SPLIT_PATTERN = r"""'(?:[sdmt]|ll|ve|re)| ?\p{L}+| ?\p{N}+| ?[^\s\p{L}\p{N}]+|\s+(?!\S)|\s+"""
+            GPT4_SPLIT_PATTERN = r"""'(?i:[sdmt]|ll|ve|re)|[^\r\n\p{L}\p{N}]?+\p{L}+|\p{N}{1,3}| ?[^\s\p{L}\p{N}]++[\r\n]*|\s*[\r\n]|\s+(?!\S)|\s+"""
+            BATCHSIZE = 100
+            CHUNKING_BATCHSIZE = 10000
+            CHUNKING_MAX_WORKER = 50
+            MERGE_BATCHING_SIZE = 10000
+            MERGE_BATCHING_MAX_WORKER = 50
+            MAX_WORKER = 10
             config = yaml.safe_load(f)
-            GPT2_SPLIT_PATTERN = config['train_tokenizer'].get("gpt2_split_pattern", GPT2_SPLIT_PATTERN)
-            GPT4_SPLIT_PATTERN = config['train_tokenizer'].get("gpt4_split_pattern", GPT4_SPLIT_PATTERN)
-            BATCHSIZE = config['train_tokenizer'].get("batch_size", BATCHSIZE)
-            CHUNKING_BATCHSIZE = config['train_tokenizer'].get("chunking_batch_size", CHUNKING_BATCHSIZE)
-            CHUNKING_MAX_WORKER = config['train_tokenizer'].get("chunking_max_worker", CHUNKING_MAX_WORKER)
-            MERGE_BATCHING_SIZE = config['train_tokenizer'].get("merge_batching_size", MERGE_BATCHING_SIZE)
-            MERGE_BATCHING_MAX_WORKER = config['train_tokenizer'].get("merge_batching_max_worker", MERGE_BATCHING_MAX_WORKER)
-            MAX_WORKER = config['train_tokenizer'].get("max_worker", MAX_WORKER)
+            self.GPT2_SPLIT_PATTERN = config['train_tokenizer'].get("gpt2_split_pattern", GPT2_SPLIT_PATTERN)
+            self.GPT4_SPLIT_PATTERN = config['train_tokenizer'].get("gpt4_split_pattern", GPT4_SPLIT_PATTERN)
+            self.BATCHSIZE = config['train_tokenizer'].get("batch_size", BATCHSIZE)
+            self.CHUNKING_BATCHSIZE = config['train_tokenizer'].get("chunking_batch_size", CHUNKING_BATCHSIZE)
+            self.CHUNKING_MAX_WORKER = config['train_tokenizer'].get("chunking_max_worker", CHUNKING_MAX_WORKER)
+            self.MERGE_BATCHING_SIZE = config['train_tokenizer'].get("merge_batching_size", MERGE_BATCHING_SIZE)
+            self.MERGE_BATCHING_MAX_WORKER = config['train_tokenizer'].get("merge_batching_max_worker", MERGE_BATCHING_MAX_WORKER)
+            self.MAX_WORKER = config['train_tokenizer'].get("max_worker", MAX_WORKER)
             return config
 
     def __init__(self, vocab_size=1000):
@@ -62,9 +63,9 @@ class MATokenizer:
     def read_corpus(self, folder_path):
         text = ""
         print("Location of clean data" , folder_path)
-        batches = self.batching_files(folder_path,BATCHSIZE)
+        batches = self.batching_files(folder_path,self.BATCHSIZE)
         threads = []
-        with concurrent.futures.ThreadPoolExecutor(MAX_WORKER) as executor:
+        with concurrent.futures.ThreadPoolExecutor(self.MAX_WORKER) as executor:
             for batch in batches:    
                 threads.append(executor.submit(self.read_corpus_batches,batch,folder_path))
             for idx,thread in enumerate( concurrent.futures.as_completed(threads)):
@@ -187,7 +188,7 @@ class MARegexTokenizer(MATokenizer):
         """
         super().__init__()
         self.vocab_size = vocab_size 
-        self.pattern = GPT4_SPLIT_PATTERN if pattern is None else pattern
+        self.pattern = self.GPT4_SPLIT_PATTERN if pattern is None else pattern
         self.compiled_pattern = re.compile(self.pattern)
         self.special_tokens = special_tokens
         self.inverse_special_tokens = {v:k for k,v in special_tokens.items()}
@@ -207,8 +208,8 @@ class MARegexTokenizer(MATokenizer):
             """
             pairs = Counter()
             
-            chunk_batches = [ids[CHUNKING_BATCHSIZE * i : CHUNKING_BATCHSIZE * (i + 1)] for i in range((len(ids) + CHUNKING_BATCHSIZE - 1) // CHUNKING_BATCHSIZE)]
-            with concurrent.futures.ProcessPoolExecutor(CHUNKING_MAX_WORKER) as executor:
+            chunk_batches = [ids[self.CHUNKING_BATCHSIZE * i : self.CHUNKING_BATCHSIZE * (i + 1)] for i in range((len(ids) + self.CHUNKING_BATCHSIZE - 1) // self.CHUNKING_BATCHSIZE)]
+            with concurrent.futures.ProcessPoolExecutor(self.CHUNKING_MAX_WORKER) as executor:
                 futures = [executor.submit(self.process_chunk_ids_batch, chunk_ids_batch) for chunk_ids_batch in chunk_batches]
                 #print(f"[+] Merging {len(futures)} chunks ...")
                 for idx,thread in enumerate( concurrent.futures.as_completed(futures)):
@@ -221,10 +222,10 @@ class MARegexTokenizer(MATokenizer):
         return [self.fast_merge_tokens(chunk_ids, pair, idx) for chunk_ids in batch_ids]
 
     def get_new_ids(self, ids, pair, idx):
-        chunk_batches = [ids[MERGE_BATCHING_SIZE * i : MERGE_BATCHING_SIZE * (i + 1)] for i in range((len(ids) + MERGE_BATCHING_SIZE - 1) // MERGE_BATCHING_SIZE)]
+        chunk_batches = [ids[self.MERGE_BATCHING_SIZE * i : self.MERGE_BATCHING_SIZE * (i + 1)] for i in range((len(ids) + self.MERGE_BATCHING_SIZE - 1) // self.MERGE_BATCHING_SIZE)]
         #print(len(chunk_batches))
         new_ids = []
-        with concurrent.futures.ProcessPoolExecutor(MERGE_BATCHING_MAX_WORKER) as executor:
+        with concurrent.futures.ProcessPoolExecutor(self.MERGE_BATCHING_MAX_WORKER) as executor:
             futures = [executor.submit(self.process_get_new_ids_batch, chunk_ids, pair, idx) for chunk_ids in chunk_batches]
             for id,thread in enumerate( concurrent.futures.as_completed(futures)):
                 new_ids.extend(thread.result())
