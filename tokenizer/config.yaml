@@ -1,8 +1,4 @@
 train_tokenizer:
-  model: rumi_tokenizer
-  vocab_size: 16000
-  data_path: /data/clean/wiki_crawl
-  tokenizer_path: /data/tokenizers/rumi_tokenizer.json
   gpt2_split_pattern : r"""'(?:[sdmt]|ll|ve|re)| ?\p{L}+| ?\p{N}+| ?[^\s\p{L}\p{N}]+|\s+(?!\S)|\s+"""
   gpt4_split_pattern : r"""'(?i:[sdmt]|ll|ve|re)|[^\r\n\p{L}\p{N}]?+\p{L}+|\p{N}{1,3}| ?[^\s\p{L}\p{N}]++[\r\n]*|\s*[\r\n]|\s+(?!\S)|\s+"""
   batch_size : 100
