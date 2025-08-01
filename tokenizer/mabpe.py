@@ -23,14 +23,14 @@ class MATokenizer:
     def load_config(self):
         with open("config.yaml", "r") as f:
             config = yaml.safe_load(f)
-            GPT2_SPLIT_PATTERN = config.get("gpt2_split_pattern", GPT2_SPLIT_PATTERN)
-            GPT4_SPLIT_PATTERN = config.get("gpt4_split_pattern", GPT4_SPLIT_PATTERN)
-            BATCHSIZE = config.get("batch_size", BATCHSIZE)
-            CHUNKING_BATCHSIZE = config.get("chunking_batch_size", CHUNKING_BATCHSIZE)
-            CHUNKING_MAX_WORKER = config.get("chunking_max_worker", CHUNKING_MAX_WORKER)
-            MERGE_BATCHING_SIZE = config.get("merge_batching_size", MERGE_BATCHING_SIZE)
-            MERGE_BATCHING_MAX_WORKER = config.get("merge_batching_max_worker", MERGE_BATCHING_MAX_WORKER)
-            MAX_WORKER = config.get("max_worker", MAX_WORKER)
+            GPT2_SPLIT_PATTERN = config['train_tokenizer'].get("gpt2_split_pattern", GPT2_SPLIT_PATTERN)
+            GPT4_SPLIT_PATTERN = config['train_tokenizer'].get("gpt4_split_pattern", GPT4_SPLIT_PATTERN)
+            BATCHSIZE = config['train_tokenizer'].get("batch_size", BATCHSIZE)
+            CHUNKING_BATCHSIZE = config['train_tokenizer'].get("chunking_batch_size", CHUNKING_BATCHSIZE)
+            CHUNKING_MAX_WORKER = config['train_tokenizer'].get("chunking_max_worker", CHUNKING_MAX_WORKER)
+            MERGE_BATCHING_SIZE = config['train_tokenizer'].get("merge_batching_size", MERGE_BATCHING_SIZE)
+            MERGE_BATCHING_MAX_WORKER = config['train_tokenizer'].get("merge_batching_max_worker", MERGE_BATCHING_MAX_WORKER)
+            MAX_WORKER = config['train_tokenizer'].get("max_worker", MAX_WORKER)
             return config
 
     def __init__(self, vocab_size=1000):
