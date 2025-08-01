@@ -1,0 +1,27 @@
+websites:
+  - https://arxiv.org
+  - https://techcrunch.com
+
+reddit:
+  client_id: YOUR_CLIENT_ID
+  client_secret: YOUR_CLIENT_SECRET
+  user_agent: slm_collector
+  subreddits: [MachineLearning, LanguageTechnology]
+
+wikipedia:
+  topics: [Artificial intelligence, Quantum mechanics, Evolution, Blockchain, Cybersecurity,
+    Robotics, Space exploration, Genetics, Environmental science, Internet of things,
+    Stock market, Economic theory, Entrepreneurship, Supply chain management, Cryptocurrency,
+    Inflation, E-commerce, Behavioral economics, Philosophy, Psychology, Linguistics,
+    Political science, Sociology, Ethics, Religion, Cultural anthropology, Gender studies,
+    Japan, Brazil, Egypt, New York City, Nairobi, Paris, Geography of climate, Natural disasters,
+    Borders and conflicts, Shakespeare, Poetry, Literary criticism, Epic novels, Storytelling,
+    Translation studies, Cinema history, Anime, Jazz, Hip hop, Classical music, Video games,
+    Theatre, Popular TV shows, U.S. Constitution, Human rights, World War II, United Nations,
+    Ancient civilizations, Legal systems, Colonialism, Mental health, Anatomy, Pandemics,
+    Healthcare systems, Nutrition, Drug development, Cooking, Travel, Parenting, Time management,
+    Personal finance, Education, Mindfulness, Fitness and exercise, Logic, Algorithms,
+    Probability, Statistics, Systems thinking, Network theory]
+
+newsapi:
+  api_key: YOUR_NEWS_API_KEY

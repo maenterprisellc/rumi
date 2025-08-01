@@ -1,0 +1,13 @@
+requests
+beautifulsoup4
+praw
+PyYAML
+newspaper3k
+python-docx
+pdfplumber
+wikipedia
+datasets
+torch
+numpy
+tqdm
+datasets
