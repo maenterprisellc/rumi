@@ -3,7 +3,7 @@ train_tokenizer:
   gpt4_split_pattern : r"""'(?i:[sdmt]|ll|ve|re)|[^\r\n\p{L}\p{N}]?+\p{L}+|\p{N}{1,3}| ?[^\s\p{L}\p{N}]++[\r\n]*|\s*[\r\n]|\s+(?!\S)|\s+"""
   batch_size : 100
   max_worker : 10
-  chunking_batch_size : 10000
-  chunking_max_worker : 50
-  merge_batching_size : 10000
-  merge_batching_max_worker : 50
+  chunking_batch_size : 100000
+  chunking_max_worker : 23
+  merge_batching_size : 100000
+  merge_batching_max_worker : 23

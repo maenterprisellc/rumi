@@ -9,6 +9,19 @@ import numpy as np
 import time
 import yaml
 
+# Efficient thread-safe logging setup
+import logging
+logger = logging.getLogger("bpe_logger")
+logger.setLevel(logging.INFO)
+handler = logging.StreamHandler()
+file_handler = logging.FileHandler("bpe_log.txt", mode="a", encoding="utf-8")
+formatter = logging.Formatter('%(asctime)s %(levelname)s %(threadName)s %(message)s')
+handler.setFormatter(formatter)
+file_handler.setFormatter(formatter)
+if not logger.hasHandlers():
+    logger.addHandler(handler)
+    logger.addHandler(file_handler)
+
 
 
 class MATokenizer:
@@ -259,13 +272,13 @@ class MARegexTokenizer(MATokenizer):
             self.merges[pair] = idx
             self.vocab[idx] = self.vocab[int(pair[0])] + self.vocab[int(pair[1])]
             elapsed_merge = time.time() - start
-            print(f"""
-                  Merge Done {i+1} / {num_merges} 
-                  Vocab size: {len(self.vocab)}   
-                  New Ids: {len(ids)}    
-                  Work time for Get Pairs: {elapsed_get_pairs:.2f} seconds  
-                  Work time for Merge: {elapsed_merge:.2f} seconds
-                  ______________________________________________________""")
+            logger.info(
+                f"Merge Done {i+1} / {num_merges} | "
+                f"Vocab size: {len(self.vocab)} | "
+                f"New Ids: {len(ids)} | "
+                f"Work time for Get Pairs: {elapsed_get_pairs:.2f} seconds | "
+                f"Work time for Merge: {elapsed_merge:.2f} seconds"
+            )
 
     def build_bpe(self, corpus_path): # type: ignore
         assert self.vocab_size >= 256
