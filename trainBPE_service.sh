@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Set your project and venv paths
-PROJECT_DIR="/home/slmma/rumi"
+PROJECT_DIR="/home/$(whoami)/rumi"
 VENV_DIR="$PROJECT_DIR/.venv"
 MAIN_SCRIPT="$PROJECT_DIR/main.py"
 PROCESS_ARG="--process buildbpe"  # Change to clean/collect as needed
