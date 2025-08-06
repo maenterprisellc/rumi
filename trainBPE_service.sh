@@ -3,7 +3,7 @@
 # Set your project and venv paths
 PROJECT_DIR="/home/$(whoami)/rumi"
 VENV_DIR="$PROJECT_DIR/.venv"
-MAIN_SCRIPT="$PROJECT_DIR/main"
+MAIN_SCRIPT="main"
 PROCESS_ARG="--process buildbpe"  # Change to clean/collect as needed
 SERVICE_FILE="/etc/systemd/system/rumi.service"
 
@@ -17,7 +17,7 @@ After=network.target
 User=$(whoami)
 Group=$(whoami)
 WorkingDirectory=$PROJECT_DIR
-ExecStart=/bin/bash -c 'source $VENV_DIR/bin/activate && $VENV_DIR/bin/python -m $MAIN_SCRIPT $PROCESS_ARG'
+ExecStart=/bin/bash -c 'source $VENV_DIR/bin/activate && python -m $MAIN_SCRIPT $PROCESS_ARG'
 Restart=on-failure
 
 [Install]
