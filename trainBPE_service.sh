@@ -14,10 +14,10 @@ Description=Rumiv1 Background Service
 After=network.target
 
 [Service]
-Type=simple
 User=$(whoami)
+Group=$(whoami)
 WorkingDirectory=$PROJECT_DIR
-ExecStart=/bin/bash -c 'source $VENV_DIR/bin/activate && python -m $MAIN_SCRIPT $PROCESS_ARG
+ExecStart=/bin/bash -c 'source $VENV_DIR/bin/activate && python -m $MAIN_SCRIPT $PROCESS_ARG'
 Restart=on-failure
 
 [Install]
