@@ -184,12 +184,13 @@ class MATokenizer:
     def load(self, path):
         with open(path, "r", encoding="utf-8") as f:
             data = json.load(f)
-            self.merges = {(m[0],m[1]):m[2] for m in data["merges"]}
+            self.merges = {(m[0],m[1]):m[2] for m in sorted(data["merges"], key=lambda x: x[2]) }
             self.special_tokens = data['special_tokens']
             self.inverse_special_tokens = {v:k for k,v in self.special_tokens.items()}
             self.pattern = data['pattern']
             self.compiled_pattern = re.compile(self.pattern)
             self.vocab_size = data['vocabsize']
+            self.vocab = self._build_vocab()
 
 class MARegexTokenizer(MATokenizer):
    
@@ -346,6 +347,177 @@ class MARegexTokenizer(MATokenizer):
             idx = self.merges[pair]
             ids = self.merge_tokens(ids, pair, idx)
         return ids
+
+    def encode_ordinary(self,text):
+        ids = []
+        text_chunks = re.findall(self.compiled_pattern, text)
+        ids = []
+        for chunk in text_chunks:
+            chunk_bytes = chunk.encode("utf-8")
+            chunk_ids = self._encode_chunk(chunk_bytes)
+            ids.extend(chunk_ids)
+        return ids
+
+    def encode(self, text ,allowed_special="none_raise"):
+        special = None
+        if allowed_special == 'all':
+            special = self.special_tokens
+        elif allowed_special == "none":
+            special = {}
+        elif allowed_special == 'none_raise':
+            special = {}
+            assert all(token not in text for token in self.special_tokens)
+        elif isinstance(allowed_special, set):
+            special = {k:v for k,v in self.special_tokens.items() if k in allowed_special}
+        else:
+            raise ValueError(f"allowed_special={allowed_special} not understood")
+        if not special:
+            return self.encode_ordinary(text)
+        
+        special_pattern = "(" + "|".join(re.escape(k) for k in special) + ")"
+        special_chunks = re.split(special_pattern, text)
+        ids = []
+        for part in special_chunks:
+            if part in special:
+                ids.append(special[part])
+            else:
+                ids.extend(self.encode_ordinary(part))
+        return ids
+
+class MAFastBPETokenizer(MATokenizer):
+    
+    def __init__(self, pattern=None , special_tokens = {} , vocab_size = 1000):
+        """
+        - pattern: optional string to override the default (GPT-4 split pattern)
+        - special_tokens: str -> int dictionary of special tokens
+          example: {'<|endoftext|>': 100257}
+        """
+        super().__init__()
+        self.vocab_size = vocab_size 
+        self.pattern = self.GPT4_SPLIT_PATTERN if pattern is None else pattern
+        self.compiled_pattern = re.compile(self.pattern)
+        self.special_tokens = special_tokens
+        self.inverse_special_tokens = {v:k for k,v in special_tokens.items()}
+        for pair, idx in self.merges:
+            self.vocab[idx] = self.vocab[pair[0]] + self.vocab[pair[1]]
+    
+    def get_pairs(self,ids , pairs=None):
+        """
+        iterate over all the pairs and calculate the frequency for all of them
+        """
+        pairs = pairs or defaultdict(lambda: {'count': 0, 'tokens': []})
+        for i in range(len(ids['token'])-1):
+            pair = (ids['token'][i], ids['token'][i+1])
+            pairs[pair]['count'] += 1
+            pairs[pair]['tokens'].append(ids['token_id'])
+        return pairs
+
+    def update_pairs(self,ids , pairs, new_pairs=None):
+        """
+        iterate over all the pairs and calculate the frequency for all of them
+        """
+        new_pairs = set() if new_pairs is None else new_pairs
+        for i in range(len(ids['token'])-1):
+            pair = (ids['token'][i], ids['token'][i+1])
+            if pair not in pairs or pair in new_pairs:
+                if pair not in pairs:
+                    new_pairs.add(pair)
+                pairs[pair]['count'] += 1
+                pairs[pair]['tokens'].append(ids['token_id'])
+        return pairs, new_pairs
+
+    def merge_tokens(self,ids, pair, idx):
+        new_ids = []
+        i = 0
+        while i < len(ids['token']):
+            if ids['token'][i] == pair[0] and i < len(ids['token']) - 1 and ids['token'][i+1] == pair[1]:
+                new_ids.append(idx)
+                i+=2
+            else:
+                new_ids.append(ids['token'][i])
+                i +=1
+        ids['token'] = new_ids
+        return ids
+    
+    def build_bpe(self, corpus_path): # type: ignore
+        assert self.vocab_size >= 256
+        num_merges = self.vocab_size - 256
+
+        print("[+] Read Corpus ...")
+        text = self.read_corpus(corpus_path)
+        print("[+] Chunking the text using Regex ...")
+        text_chunk = re.findall(self.compiled_pattern,text)
+
+        ids = [{ 'token' : list(ch.encode("utf-8")) , 'merged' : -1  , 'token_id': i} for i,ch in enumerate(text_chunk)]
+
+        self.merges = {}
+        pairs = None
+        print(f"[+] do the estimated merges {num_merges} ...")
+        for idm in range(num_merges):
+            start = time.time()
+            new_pairs = None
+            for i in range(len(ids)):
+                if ids[i]['merged'] == -1:
+                    pairs = self.get_pairs(ids[i],pairs)
+                elif ids[i]['merged'] == 1:
+                #else:
+                    pairs,new_pairs = self.update_pairs(ids[i], pairs,new_pairs)
+                ids[i]['merged'] = 0
+            if pairs is None or len(pairs) == 0:
+                print(f"[!] No more pairs to merge at iteration {idm+1}. Stopping early.")
+                break
+            most_common_pair = max(pairs.keys(), key=lambda x: pairs[x]['count'])
+            idx = 256 + idm
+            elapsed_get_pairs = time.time() - start
+            start = time.time()
+            for i in pairs[most_common_pair]['tokens']:
+                ids[i] = self.merge_tokens(ids[i], most_common_pair, idx)
+                ids[i]['merged'] = 1
+            
+            self.merges[most_common_pair] = idx
+            pairs.pop(most_common_pair)
+            self.vocab[idx] = self.vocab[most_common_pair[0]] + self.vocab[most_common_pair[1]]
+            
+            elapsed_merge = time.time() - start
+            print(f"""
+                  Merge Done {idm+1} / {num_merges} 
+                  Vocab size: {len(self.vocab)}   
+                  New Ids: {len(ids)}    
+                  Work time for Get Pairs: {elapsed_get_pairs:.2f} seconds  
+                  Work time for Merge: {elapsed_merge:.2f} seconds
+                  ______________________________________________________
+                  """)
+    
+    def register_special_tokens(self, special_tokens):
+        # special_tokens is a dictionary of str -> int
+        # example: {"<|endoftext|>": 100257}
+        self.special_tokens = special_tokens
+        self.inverse_special_tokens = {v: k for k, v in special_tokens.items()}            
+
+    def decode(self,ids):
+        part_bytes = []
+        for idx in ids:
+            if idx in self.vocab:
+                part_bytes.append(self.vocab[idx])
+            elif idx in self.inverse_special_tokens:
+                part_bytes.append(self.inverse_special_tokens[idx].encode("utf-8"))
+            else:
+                raise ValueError(f"invalid token id: {idx}")
+            
+        text_bytes = b"".join(part_bytes)
+        text = text_bytes.decode("utf-8", errors="replace")
+        return text
+
+    def _encode_chunk(self, text_bytes):
+        ids = {'token': list(text_bytes) , 'merged': -1 , 'token_id':0}
+        while len(ids['token']) >= 2:
+            pairs = self.get_pairs(ids,None)
+            pair = min(pairs, key = lambda p: self.merges.get(p, float("inf")))
+            if pair not in self.merges:
+                break
+            idx = self.merges[pair]
+            ids = self.merge_tokens(ids, pair, idx)
+        return ids['token']
 
     def encode_ordinary(self,text):
         ids = []
