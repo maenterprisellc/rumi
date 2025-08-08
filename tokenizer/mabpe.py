@@ -443,16 +443,16 @@ class MAFastBPETokenizer(MATokenizer):
         assert self.vocab_size >= 256
         num_merges = self.vocab_size - 256
 
-        print("[+] Read Corpus ...")
+        logger.info("[+] Read Corpus ...")
         text = self.read_corpus(corpus_path)
-        print("[+] Chunking the text using Regex ...")
+        logger.info("[+] Chunking the text using Regex ...")
         text_chunk = re.findall(self.compiled_pattern,text)
 
         ids = [{ 'token' : list(ch.encode("utf-8")) , 'merged' : -1  , 'token_id': i} for i,ch in enumerate(text_chunk)]
 
         self.merges = {}
         pairs = None
-        print(f"[+] do the estimated merges {num_merges} ...")
+        logger.info(f"[+] do the estimated merges {num_merges} ...")
         for idm in range(num_merges):
             start = time.time()
             new_pairs = None
