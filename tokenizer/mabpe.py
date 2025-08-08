@@ -479,7 +479,7 @@ class MAFastBPETokenizer(MATokenizer):
             self.vocab[idx] = self.vocab[most_common_pair[0]] + self.vocab[most_common_pair[1]]
             
             elapsed_merge = time.time() - start
-            print(f"""
+            logger.info(f"""
                   Merge Done {idm+1} / {num_merges} 
                   Vocab size: {len(self.vocab)}   
                   New Ids: {len(ids)}    
