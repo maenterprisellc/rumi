@@ -1,2 +1,2 @@
 # rumi
-rumi is a small language model to be focus on different type of model, rumi will be a swarm of models to be able to over perform the Large Language Models 
+Rumi is a small language model to focus on different types of tasks. Rumi will be a swarm of models to be able to overperform the Large Language Models 
