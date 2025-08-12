@@ -10,6 +10,7 @@ import sys
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--process" , type=str, help='[clean, collect, buildbpe]')
+parser.add_argument("--config", type=str, help='Path to the configuration file', default="config.yaml")
 
 args = parser.parse_args()
 
@@ -33,7 +34,7 @@ signal.signal(signal.SIGTERM, handle_shutdown)
 signal.signal(signal.SIGINT, handle_shutdown)
 
 def load_config():
-    with open("config.yaml", "r") as f:
+    with open(args.config, "r") as f:
         return yaml.safe_load(f)
 
 
@@ -64,7 +65,8 @@ def main():
         logger.error("Parameter not supported. Use one of: [clean, collect, buildbpe]")
     # Service loop (wait for shutdown)
     while not shutdown_flag:
-        signal.pause()
+        if signal:
+            signal.pause()
     logger.info("Service shutting down.")
 
 

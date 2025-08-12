@@ -25,9 +25,9 @@ wikipedia:
 
 train_tokenizer:
   model: rumi_tokenizer
-  vocab_size: 16000
-  data_path: ../data/clean/wiki_crawl
-  tokenizer_path: ../data/tokenizers/rumi_tokenizer_v1.json
+  vocab_size: 260
+  data_path: ../data/clean/Test
+  tokenizer_path: ../data/tokenizers/test_rumi_tokenizer_V2.json
 
 newsapi:
   api_key: YOUR_NEWS_API_KEY

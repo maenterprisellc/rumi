@@ -1,5 +1,6 @@
 .venv
-
+bpe_log.txt
+*.log
 data/
 *.pyc
 __pycache__/

@@ -1,0 +1,38 @@
+2025-08-12 11:36:04,570 INFO MainThread [+] Loading tokenizer from ../data/tokenizers/test_rumi_tokenizer.json
+2025-08-12 11:37:24,822 INFO MainThread [+] Training BPE tokenizer from scratch...
+2025-08-12 11:37:24,822 INFO MainThread [+] Read Corpus ...
+2025-08-12 11:37:24,823 INFO MainThread [+] Chunking the text using Regex ...
+2025-08-12 11:37:24,824 INFO MainThread [+] do the estimated merges 4 ...
+2025-08-12 11:37:24,824 INFO MainThread 
+                  Merge Done 1 / 4 
+                  Vocab size: 257   
+                  New Ids: 25    
+                  Work time for Get Pairs: 0.00 seconds  
+                  Work time for Merge: 0.00 seconds
+                  ______________________________________________________
+                  
+2025-08-12 11:37:24,824 INFO MainThread 
+                  Merge Done 2 / 4 
+                  Vocab size: 258   
+                  New Ids: 25    
+                  Work time for Get Pairs: 0.00 seconds  
+                  Work time for Merge: 0.00 seconds
+                  ______________________________________________________
+                  
+2025-08-12 11:37:24,824 INFO MainThread 
+                  Merge Done 3 / 4 
+                  Vocab size: 259   
+                  New Ids: 25    
+                  Work time for Get Pairs: 0.00 seconds  
+                  Work time for Merge: 0.00 seconds
+                  ______________________________________________________
+                  
+2025-08-12 11:37:24,824 INFO MainThread 
+                  Merge Done 4 / 4 
+                  Vocab size: 260   
+                  New Ids: 25    
+                  Work time for Get Pairs: 0.00 seconds  
+                  Work time for Merge: 0.00 seconds
+                  ______________________________________________________
+                  
+2025-08-12 11:37:24,824 INFO MainThread [✓] Tokenizer saved to ../data/tokenizers/test_rumi_tokenizer_V2.json

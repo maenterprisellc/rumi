@@ -4,6 +4,18 @@ from tokenizer.mabpe import MARegexTokenizer, MAFastBPETokenizer
 from datasets import Dataset
 from typing import Optional
 
+import logging
+logger = logging.getLogger("bpe_logger")
+logger.setLevel(logging.INFO)
+handler = logging.StreamHandler()
+file_handler = logging.FileHandler("bpe_log.txt", mode="a", encoding="utf-8")
+formatter = logging.Formatter('%(asctime)s %(levelname)s %(threadName)s %(message)s')
+handler.setFormatter(formatter)
+file_handler.setFormatter(formatter)
+if not logger.hasHandlers():
+    logger.addHandler(handler)
+    logger.addHandler(file_handler)
+
 class MABPECorpusBuilder:
     def __init__(
         self,
@@ -27,10 +39,10 @@ class MABPECorpusBuilder:
 
     def train_or_load_tokenizer(self, force_retrain=False):
         if os.path.exists(self.tokenizer_path) and not force_retrain:
-            print(f"[+] Loading tokenizer from {self.tokenizer_path}")
+            logger.info(f"[+] Loading tokenizer from {self.tokenizer_path}")
             self.tokenizer.load(self.tokenizer_path)
         else:
-            print("[+] Training BPE tokenizer from scratch...")
+            logger.info("[+] Training BPE tokenizer from scratch...")
             self.tokenizer.build_bpe(self.clean_text_dir)
             self.tokenizer.save(self.tokenizer_path)
-            print(f"[✓] Tokenizer saved to {self.tokenizer_path}")
+            logger.info(f"[✓] Tokenizer saved to {self.tokenizer_path}")
